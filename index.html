@@ -7,26 +7,23 @@
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%;overflow:hidden}
-body{display:flex;align-items:center;justify-content:center;background:#06070b;color:#f2e7d0;font-family:Georgia,'Palatino Linotype',serif;position:relative}
-.bg{position:fixed;inset:0;pointer-events:none;z-index:0}
-.bg::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 35% 45% at 50% 44%,rgba(212,168,71,.09) 0%,transparent 65%),radial-gradient(ellipse 60% 50% at 35% 75%,rgba(138,107,31,.04) 0%,transparent 55%),radial-gradient(ellipse 50% 40% at 72% 25%,rgba(212,168,71,.025) 0%,transparent 50%),radial-gradient(ellipse 75% 70% at 50% 50%,transparent 40%,rgba(0,0,0,.5) 100%);animation:bp 12s ease-in-out infinite}
-.bg::after{content:'';position:absolute;inset:0;opacity:.028;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:200px}
-@keyframes bp{0%,100%{opacity:.6}50%{opacity:1}}
-.pt{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+body{display:flex;align-items:center;justify-content:center;background:#000;color:#f2e7d0;font-family:Georgia,'Palatino Linotype',serif;position:relative}
+canvas#stars{position:fixed;inset:0;z-index:0;width:100%;height:100%}
+.pt{position:fixed;inset:0;pointer-events:none;z-index:2;overflow:hidden}
 .d{position:absolute;border-radius:50%;background:#d4a847;opacity:0;animation:dr linear infinite}
-@keyframes dr{0%{opacity:0;transform:translateY(0) scale(.4)}10%{opacity:.4}90%{opacity:.3}100%{opacity:0;transform:translateY(-105vh) scale(1)}}
-.sc{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;padding:0 1.5rem;opacity:0;animation:si 2.4s cubic-bezier(.16,1,.3,1) .4s forwards}
+@keyframes dr{0%{opacity:0;transform:translateY(0) scale(.4)}10%{opacity:.45}90%{opacity:.35}100%{opacity:0;transform:translateY(-105vh) scale(1)}}
+.sc{position:relative;z-index:3;display:flex;flex-direction:column;align-items:center;padding:0 1.5rem;opacity:0;animation:si 2.4s cubic-bezier(.16,1,.3,1) .4s forwards}
 @keyframes si{from{opacity:0;transform:translateY(55px) scale(.9)}to{opacity:1;transform:translateY(0) scale(1)}}
-h1{font-size:clamp(1.4rem,4.8vw,3.8rem);font-weight:400;letter-spacing:.25em;text-transform:uppercase;text-align:center;white-space:nowrap;text-shadow:0 2px 8px rgba(0,0,0,.5),0 0 45px rgba(212,168,71,.1),0 0 90px rgba(212,168,71,.04);opacity:0;animation:ti 2s cubic-bezier(.16,1,.3,1) .9s forwards}
+h1{font-size:clamp(1.4rem,4.8vw,3.8rem);font-weight:400;letter-spacing:.25em;text-transform:uppercase;text-align:center;white-space:nowrap;text-shadow:0 2px 8px rgba(0,0,0,.8),0 0 45px rgba(212,168,71,.15),0 0 90px rgba(212,168,71,.07);opacity:0;animation:ti 2s cubic-bezier(.16,1,.3,1) .9s forwards}
 @keyframes ti{from{opacity:0;letter-spacing:.4em;filter:blur(5px)}to{opacity:1;letter-spacing:.25em;filter:blur(0)}}
 .ln{width:0;height:1px;margin:clamp(1rem,2.5vw,1.8rem) auto;background:linear-gradient(90deg,transparent,#d4a847,transparent);animation:lg 1.5s cubic-bezier(.16,1,.3,1) 1.4s forwards}
 @keyframes lg{to{width:clamp(50px,10vw,110px)}}
-.sb{font-size:clamp(.75rem,1.8vw,1.05rem);letter-spacing:.45em;text-transform:uppercase;color:rgba(212,168,71,.55);text-shadow:0 1px 6px rgba(0,0,0,.4);opacity:0;animation:sn 1.4s ease-out 1.8s forwards}
+.sb{font-size:clamp(.75rem,1.8vw,1.05rem);letter-spacing:.45em;text-transform:uppercase;color:rgba(212,168,71,.6);text-shadow:0 1px 6px rgba(0,0,0,.6);opacity:0;animation:sn 1.4s ease-out 1.8s forwards}
 @keyframes sn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
 <body>
-<div class="bg"></div>
+<canvas id="stars"></canvas>
 <div class="pt" id="p"></div>
 <div class="sc">
 <h1>Seid gespannt 🤫</h1>
@@ -35,6 +32,7 @@ h1{font-size:clamp(1.4rem,4.8vw,3.8rem);font-weight:400;letter-spacing:.25em;tex
 </div>
 <script>
 !function(){var c=document.getElementById('p'),n=Math.min(55,Math.max(30,Math.floor(window.innerWidth/30)));for(var i=0;i<n;i++){var d=document.createElement('div');d.className='d';var s=1+Math.random()*3;d.style.cssText='width:'+s+'px;height:'+s+'px;left:'+Math.random()*100+'%;top:'+(40+Math.random()*65)+'%;animation-duration:'+(8+Math.random()*16)+'s;animation-delay:'+(Math.random()*10)+'s;';c.appendChild(d)}}();
+!function(){var cv=document.getElementById('stars'),cx=cv.getContext('2d'),st=[];var W,H;function re(){var d=Math.min(window.devicePixelRatio||1,2);W=window.innerWidth;H=window.innerHeight;cv.width=W*d;cv.height=H*d;cx.setTransform(d,0,0,d,0,0);if(st.length===0){var n=Math.min(200,Math.floor(W*H/4000));for(var i=0;i<n;i++)st.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+.3,b:Math.random(),s:Math.random()*.0003+.0001,d:Math.random()*.15+.02})}}re();window.addEventListener('resize',re);var t=0;function fr(ts){cx.clearRect(0,0,W,H);t=ts*.0001;for(var i=0;i<st.length;i++){var s=st[i];s.b+=s.s*16;if(s.b>1)s.s=-Math.abs(s.s);if(s.b<.1)s.s=Math.abs(s.s);var x=s.x+Math.sin(t+i*.5)*s.d*40;var y=s.y+Math.cos(t+i*.3)*s.d*25;cx.beginPath();cx.arc(x,y,s.r,0,6.28);cx.fillStyle='rgba(255,250,230,'+s.b*.8+')';cx.fill()}requestAnimationFrame(fr)}requestAnimationFrame(fr)}();
 </script>
 </body>
 </html>
