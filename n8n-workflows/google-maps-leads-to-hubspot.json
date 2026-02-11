@@ -1,0 +1,304 @@
+{
+  "name": "Google Maps Leads → HubSpot (Instant Data Scraper)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "google-maps-leads",
+        "responseMode": "lastNode",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook - CSV Upload",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "google-maps-leads"
+    },
+    {
+      "parameters": {
+        "operation": "fromJson",
+        "jsonInput": "={{ $json.body }}",
+        "options": {}
+      },
+      "id": "parse-csv",
+      "name": "CSV zu Items",
+      "type": "n8n-nodes-base.spreadsheetFile",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  const data = item.json;\n  \n  // Map Instant Data Scraper fields to our schema\n  // The scraper typically exports these column names from Google Maps\n  const name = data['Name'] || data['name'] || data['Title'] || data['title'] || '';\n  const phone = data['Phone'] || data['phone'] || data['Telefon'] || data['telefon'] || data['Phone number'] || '';\n  const address = data['Address'] || data['address'] || data['Adresse'] || data['adresse'] || data['Full address'] || '';\n  const website = data['Website'] || data['website'] || data['Web'] || data['web'] || data['URL'] || '';\n  const email = data['Email'] || data['email'] || data['E-Mail'] || data['e-mail'] || '';\n  const rating = data['Rating'] || data['rating'] || data['Bewertung'] || '';\n  const reviews = data['Reviews'] || data['reviews'] || data['Bewertungen'] || '';\n  const category = data['Category'] || data['category'] || data['Kategorie'] || '';\n  \n  // Extract city from address\n  let city = data['Stadt'] || data['City'] || data['city'] || '';\n  if (!city && address) {\n    // Try to extract city from German address format: \"Street, PLZ City\"\n    const match = address.match(/\\d{5}\\s+([^,]+)/);\n    if (match) {\n      city = match[1].trim();\n    }\n  }\n  \n  // Clean phone number\n  let cleanPhone = phone.replace(/[^\\d+]/g, '');\n  if (cleanPhone && !cleanPhone.startsWith('+')) {\n    // Add German country code if missing\n    if (cleanPhone.startsWith('0')) {\n      cleanPhone = '+49' + cleanPhone.substring(1);\n    }\n  }\n  \n  // Skip entries without a name\n  if (!name || name.trim() === '') continue;\n  \n  results.push({\n    json: {\n      company_name: name.trim(),\n      phone: cleanPhone,\n      address: address.trim(),\n      city: city.trim(),\n      website: website.trim().toLowerCase(),\n      email: email.trim().toLowerCase(),\n      rating: rating,\n      reviews: reviews,\n      category: category.trim(),\n      source: 'Google Maps Scraper',\n      imported_at: new Date().toISOString()\n    }\n  });\n}\n\nif (results.length === 0) {\n  throw new Error('Keine gültigen Leads in der CSV gefunden. Prüfe die Spaltennamen.');\n}\n\nreturn results;"
+      },
+      "id": "clean-data",
+      "name": "Daten bereinigen & mappen",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/companies/search",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "hubspotApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ filterGroups: [{ filters: [{ propertyName: 'phone', operator: 'EQ', value: $json.phone }] }], properties: ['name', 'phone'], limit: 1 }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "check-duplicate-phone",
+      "name": "Duplikat-Check (Telefon)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-no-results",
+              "leftValue": "={{ $json.total }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "is-duplicate",
+      "name": "Ist Duplikat?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "resource": "company",
+        "additionalFields": {
+          "name": "={{ $('Daten bereinigen & mappen').item.json.company_name }}",
+          "phone": "={{ $('Daten bereinigen & mappen').item.json.phone }}",
+          "address": "={{ $('Daten bereinigen & mappen').item.json.address }}",
+          "city": "={{ $('Daten bereinigen & mappen').item.json.city }}",
+          "website": "={{ $('Daten bereinigen & mappen').item.json.website }}",
+          "description": "={{ 'Quelle: ' + $('Daten bereinigen & mappen').item.json.source + ' | Kategorie: ' + $('Daten bereinigen & mappen').item.json.category + ' | Bewertung: ' + $('Daten bereinigen & mappen').item.json.rating + ' (' + $('Daten bereinigen & mappen').item.json.reviews + ' Reviews)' }}"
+        }
+      },
+      "id": "create-company",
+      "name": "HubSpot - Firma anlegen",
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2,
+      "position": [1340, 200],
+      "credentials": {
+        "hubspotApi": {
+          "id": "HUBSPOT_CREDENTIAL_ID",
+          "name": "HubSpot API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "contact",
+        "additionalFields": {
+          "firstName": "={{ $('Daten bereinigen & mappen').item.json.company_name }}",
+          "phone": "={{ $('Daten bereinigen & mappen').item.json.phone }}",
+          "email": "={{ $('Daten bereinigen & mappen').item.json.email }}",
+          "city": "={{ $('Daten bereinigen & mappen').item.json.city }}",
+          "address": "={{ $('Daten bereinigen & mappen').item.json.address }}",
+          "website": "={{ $('Daten bereinigen & mappen').item.json.website }}"
+        }
+      },
+      "id": "create-contact",
+      "name": "HubSpot - Kontakt anlegen",
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2,
+      "position": [1560, 200],
+      "credentials": {
+        "hubspotApi": {
+          "id": "HUBSPOT_CREDENTIAL_ID",
+          "name": "HubSpot API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "={{ 'https://api.hubapi.com/crm/v3/objects/contacts/' + $json.id + '/associations/companies/' + $('HubSpot - Firma anlegen').item.json.id + '/contact_to_company' }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "hubspotApi",
+        "options": {}
+      },
+      "id": "associate-contact-company",
+      "name": "Kontakt mit Firma verknüpfen",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1780, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.all();\nconst skipped = $('Daten bereinigen & mappen').item.json;\nreturn [{\n  json: {\n    status: 'übersprungen',\n    reason: 'Duplikat - Telefonnummer bereits vorhanden',\n    company_name: skipped.company_name,\n    phone: skipped.phone\n  }\n}];"
+      },
+      "id": "log-duplicate",
+      "name": "Duplikat protokollieren",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1340, 420]
+    },
+    {
+      "parameters": {
+        "jsCode": "const created = $input.all();\nreturn [{\n  json: {\n    message: 'Import abgeschlossen',\n    timestamp: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "response-success",
+      "name": "Erfolgs-Antwort",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2000, 300]
+    }
+  ],
+  "connections": {
+    "Webhook - CSV Upload": {
+      "main": [
+        [
+          {
+            "node": "CSV zu Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CSV zu Items": {
+      "main": [
+        [
+          {
+            "node": "Daten bereinigen & mappen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Daten bereinigen & mappen": {
+      "main": [
+        [
+          {
+            "node": "Duplikat-Check (Telefon)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Duplikat-Check (Telefon)": {
+      "main": [
+        [
+          {
+            "node": "Ist Duplikat?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ist Duplikat?": {
+      "main": [
+        [
+          {
+            "node": "HubSpot - Firma anlegen",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Duplikat protokollieren",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HubSpot - Firma anlegen": {
+      "main": [
+        [
+          {
+            "node": "HubSpot - Kontakt anlegen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HubSpot - Kontakt anlegen": {
+      "main": [
+        [
+          {
+            "node": "Kontakt mit Firma verknüpfen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Kontakt mit Firma verknüpfen": {
+      "main": [
+        [
+          {
+            "node": "Erfolgs-Antwort",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Duplikat protokollieren": {
+      "main": [
+        [
+          {
+            "node": "Erfolgs-Antwort",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "tags": [
+    {
+      "name": "Lead Generation",
+      "id": "lead-gen"
+    },
+    {
+      "name": "HubSpot",
+      "id": "hubspot"
+    },
+    {
+      "name": "Google Maps",
+      "id": "google-maps"
+    }
+  ]
+}
