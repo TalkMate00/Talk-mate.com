@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+*, *::before, *::after {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+}
+
+body {
+background: transparent;
+display: flex;
+justify-content: center;
+align-items: center;
+min-height: 100vh;
+font-family: ‘Inter’, -apple-system, BlinkMacSystemFont, sans-serif;
+overflow: hidden;
+}
+
+.card {
+background: rgba(255, 255, 255, 0.95);
+border-radius: 16px;
+padding: 10px;
+width: 100%;
+max-width: 520px;
+box-shadow:
+0 0 12px rgba(255, 255, 255, 0.4),
+0 0 32px rgba(255, 255, 255, 0.15),
+0 8px 32px rgba(30, 23, 100, 0.06);
+display: flex;
+flex-direction: column;
+gap: 0;
+animation: pulseGlow 5s ease-in-out infinite;
+}
+
+.card-row {
+display: flex;
+flex-direction: row;
+gap: 6px;
+align-items: center;
+}
+
+@keyframes pulseGlow {
+0%, 100% {
+box-shadow:
+0 0 8px rgba(255, 255, 255, 0.15),
+0 0 24px rgba(255, 255, 255, 0.06),
+0 8px 32px rgba(30, 23, 100, 0.06);
+}
+50% {
+box-shadow:
+0 0 16px rgba(255, 255, 255, 0.45),
+0 0 40px rgba(255, 255, 255, 0.15),
+0 8px 32px rgba(30, 23, 100, 0.06);
+}
+}
+
+.card:hover {
+animation-play-state: paused;
+box-shadow:
+0 0 20px rgba(255, 255, 255, 0.5),
+0 0 44px rgba(255, 255, 255, 0.18),
+0 12px 40px rgba(30, 23, 100, 0.1);
+}
+
+.input-wrapper {
+position: relative;
+flex: 1;
+}
+
+.phone-input {
+width: 100%;
+height: 100%;
+padding: 17px 16px;
+border: none;
+border-radius: 12px;
+background: #EEEEF2;
+font-family: ‘Inter’, sans-serif;
+font-size: 15px;
+font-weight: 400;
+color: #18181B;
+outline: none;
+transition: background 0.25s ease, box-shadow 0.25s ease;
+letter-spacing: 0.01em;
+}
+
+.phone-input::placeholder {
+color: #9CA3AF;
+font-weight: 400;
+}
+
+.phone-input:focus {
+background: #FAFAFA;
+box-shadow: inset 0 0 0 1.5px rgba(30, 23, 100, 0.2);
+}
+
+.cta-button {
+padding: 17px 28px;
+border: none;
+border-radius: 12px;
+background: #1E1764;
+color: #FFFFFF;
+font-family: ‘Inter’, sans-serif;
+font-size: 15px;
+font-weight: 600;
+cursor: pointer;
+letter-spacing: 0.01em;
+transition: background 0.3s ease, transform 0.15s ease, box-shadow 0.3s ease;
+white-space: nowrap;
+flex-shrink: 0;
+}
+
+.cta-button:hover {
+background: #150f50;
+transform: translateY(-1px);
+box-shadow: 0 6px 20px rgba(30, 23, 100, 0.25);
+}
+
+.cta-button:active {
+transform: translateY(0);
+box-shadow: none;
+}
+
+.cta-button:disabled {
+opacity: 0.6;
+cursor: not-allowed;
+transform: none;
+}
+
+.cta-button .spinner {
+display: none;
+width: 18px;
+height: 18px;
+border: 2.5px solid rgba(255, 255, 255, 0.3);
+border-top-color: #fff;
+border-radius: 50%;
+animation: spin 0.7s linear infinite;
+margin: 0 auto;
+}
+
+.cta-button.loading .btn-text { display: none; }
+.cta-button.loading .spinner { display: block; }
+
+@keyframes spin {
+to { transform: rotate(360deg); }
+}
+
+.feedback {
+position: absolute;
+bottom: -36px;
+left: 0;
+right: 0;
+text-align: center;
+font-size: 13px;
+font-weight: 500;
+opacity: 0;
+transform: translateY(4px);
+transition: opacity 0.3s ease, transform 0.3s ease;
+pointer-events: none;
+}
+
+.feedback.show {
+opacity: 1;
+transform: translateY(0);
+}
+
+.feedback.success { color: #16A34A; }
+.feedback.error { color: #DC2626; }
+
+.card-wrapper {
+position: relative;
+width: 100%;
+max-width: 520px;
+}
+
+.consent {
+display: block;
+padding: 0 12px;
+text-align: center;
+font-size: 12px;
+line-height: 1.5;
+color: #6B7280;
+opacity: 0;
+max-height: 0;
+overflow: hidden;
+transition: opacity 0.35s ease, max-height 0.35s ease, padding 0.35s ease;
+}
+
+.consent.show {
+opacity: 1;
+max-height: 60px;
+padding: 8px 12px 2px;
+}
+
+.consent a {
+color: #1E1764;
+text-decoration: underline;
+text-underline-offset: 2px;
+transition: color 0.2s ease;
+}
+
+.consent a:hover {
+color: #150f50;
+}
+
+@keyframes fadeUp {
+from {
+opacity: 0;
+transform: translateY(4px);
+}
+to {
+opacity: 1;
+transform: translateY(0);
+}
+}
+
+@media (max-width: 520px) {
+.card {
+max-width: 100%;
+padding: 8px;
+}
+
+```
+.card-row {
+  flex-direction: column;
+}
+
+.cta-button {
+  width: 100%;
+}
+
+.phone-input {
+  border-radius: 11px;
+}
+
+.consent {
+  font-size: 11px;
+  padding: 6px 8px 4px;
+}
+```
+
+}
+</style>
+
+</head>
+<body>
+
+<div class="card-wrapper">
+  <div class="card" id="callCard">
+    <div class="card-row">
+      <div class="input-wrapper">
+        <input
+          type="tel"
+          class="phone-input"
+          id="phoneInput"
+          placeholder="Telefonnummer eingeben"
+          maxlength="20"
+          autocomplete="tel"
+        >
+      </div>
+
+```
+  <button class="cta-button" id="ctaBtn" onclick="handleCall()">
+    <span class="btn-text">Jetzt Anruf erhalten</span>
+    <div class="spinner"></div>
+  </button>
+</div>
+
+<div class="consent" id="consent">
+  Mit dem Absenden stimmst du unserer
+  <a href="https://talk-mate.com/kontaktierung" target="_blank">Kontaktierung</a> zu
+  und best&auml;tigst, unsere
+  <a href="https://talk-mate.com/datenschutz" target="_blank">Datenschutzerkl&auml;rung</a>
+  gelesen zu haben.
+</div>
+```
+
+  </div>
+
+  <div class="feedback" id="feedback"></div>
+</div>
+
+<script>
+  const phoneInput = document.getElementById('phoneInput');
+  const ctaBtn = document.getElementById('ctaBtn');
+  const feedback = document.getElementById('feedback');
+  const consent = document.getElementById('consent');
+
+  ctaBtn.addEventListener('mouseenter', () => {
+    consent.classList.add('show');
+  });
+
+  ctaBtn.addEventListener('mouseleave', () => {
+    consent.classList.remove('show');
+  });
+
+  phoneInput.addEventListener('input', () => {
+    feedback.classList.remove('show');
+    feedback.className = 'feedback';
+  });
+
+  phoneInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') handleCall();
+  });
+
+  function showFeedback(text, type) {
+    feedback.textContent = text;
+    feedback.className = 'feedback ' + type + ' show';
+  }
+
+  function isValidPhone(num) {
+    const cleaned = num.replace(/[\s\-\(\)]/g, '');
+    return /^(\+49|0049|0)[1-9]\d{7,14}$/.test(cleaned);
+  }
+
+  async function handleCall() {
+    const phone = phoneInput.value.trim();
+
+    if (!phone || !isValidPhone(phone)) {
+      showFeedback('Bitte eine gueltige Telefonnummer eingeben', 'error');
+      phoneInput.focus();
+      return;
+    }
+
+    feedback.classList.remove('show');
+    ctaBtn.classList.add('loading');
+    ctaBtn.disabled = true;
+    phoneInput.disabled = true;
+
+    try {
+      // ====================================================
+      // TODO: Deine Hetzner API-URL hier eintragen
+      // ====================================================
+      const API_URL = 'https://deine-api.talk-mate.com/api/demo-call';
+
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone })
+      });
+
+      if (!res.ok) throw new Error('API Error');
+
+      ctaBtn.classList.remove('loading');
+      showFeedback('Anruf wird gestartet — gleich klingelts!', 'success');
+
+      setTimeout(() => {
+        ctaBtn.disabled = false;
+        phoneInput.disabled = false;
+        phoneInput.value = '';
+        feedback.classList.remove('show');
+      }, 6000);
+
+    } catch (err) {
+      ctaBtn.classList.remove('loading');
+      ctaBtn.disabled = false;
+      phoneInput.disabled = false;
+      showFeedback('Verbindung fehlgeschlagen — bitte erneut versuchen', 'error');
+    }
+  }
+</script>
+
+</body>
+</html>
