@@ -100,6 +100,10 @@ background: #FAFAFA;
 box-shadow: inset 0 0 0 1.5px rgba(30, 23, 100, 0.2);
 }
 
+.cta-zone {
+flex-shrink: 0;
+}
+
 .cta-button {
 padding: 17px 28px;
 border: none;
@@ -113,7 +117,6 @@ cursor: pointer;
 letter-spacing: 0.01em;
 transition: background 0.3s ease, transform 0.15s ease, box-shadow 0.3s ease;
 white-space: nowrap;
-flex-shrink: 0;
 }
 
 .cta-button:hover {
@@ -181,6 +184,7 @@ max-width: 520px;
 
 .consent {
 display: block;
+width: 100%;
 padding: 0 12px;
 text-align: center;
 font-size: 12px;
@@ -189,6 +193,7 @@ color: #6B7280;
 opacity: 0;
 max-height: 0;
 overflow: hidden;
+pointer-events: none;
 transition: opacity 0.35s ease, max-height 0.35s ease, padding 0.35s ease;
 }
 
@@ -196,6 +201,7 @@ transition: opacity 0.35s ease, max-height 0.35s ease, padding 0.35s ease;
 opacity: 1;
 max-height: 60px;
 padding: 8px 12px 2px;
+pointer-events: auto;
 }
 
 .consent a {
@@ -207,6 +213,7 @@ transition: color 0.2s ease;
 
 .consent a:hover {
 color: #150f50;
+text-shadow: 0.3px 0 0 currentColor;
 }
 
 @keyframes fadeUp {
@@ -231,6 +238,10 @@ padding: 8px;
   flex-direction: column;
 }
 
+.cta-zone {
+  width: 100%;
+}
+
 .cta-button {
   width: 100%;
 }
@@ -241,7 +252,7 @@ padding: 8px;
 
 .consent {
   font-size: 11px;
-  padding: 6px 8px 4px;
+  padding: 0 8px;
 }
 ```
 
@@ -266,17 +277,19 @@ padding: 8px;
       </div>
 
 ```
-  <button class="cta-button" id="ctaBtn" onclick="handleCall()">
-    <span class="btn-text">Jetzt Anruf erhalten</span>
-    <div class="spinner"></div>
-  </button>
+  <div class="cta-zone" id="ctaZone">
+    <button class="cta-button" id="ctaBtn" onclick="handleCall()">
+      <span class="btn-text">Jetzt Anruf erhalten</span>
+      <div class="spinner"></div>
+    </button>
+  </div>
 </div>
 
 <div class="consent" id="consent">
   Mit dem Absenden stimmst du unserer
   <a href="https://talk-mate.com/kontaktierung" target="_blank">Kontaktierung</a> zu
-  und best&auml;tigst, unsere
-  <a href="https://talk-mate.com/datenschutz" target="_blank">Datenschutzerkl&auml;rung</a>
+  und bestätigst, unsere
+  <a href="https://talk-mate.com/datenschutz" target="_blank">Datenschutzerklärung</a>
   gelesen zu haben.
 </div>
 ```
@@ -291,14 +304,25 @@ padding: 8px;
   const ctaBtn = document.getElementById('ctaBtn');
   const feedback = document.getElementById('feedback');
   const consent = document.getElementById('consent');
+  const ctaZone = document.getElementById('ctaZone');
 
-  ctaBtn.addEventListener('mouseenter', () => {
+  let hideTimeout;
+
+  function showConsent() {
+    clearTimeout(hideTimeout);
     consent.classList.add('show');
-  });
+  }
 
-  ctaBtn.addEventListener('mouseleave', () => {
-    consent.classList.remove('show');
-  });
+  function scheduleHide() {
+    hideTimeout = setTimeout(() => {
+      consent.classList.remove('show');
+    }, 150);
+  }
+
+  ctaZone.addEventListener('mouseenter', showConsent);
+  ctaZone.addEventListener('mouseleave', scheduleHide);
+  consent.addEventListener('mouseenter', showConsent);
+  consent.addEventListener('mouseleave', scheduleHide);
 
   phoneInput.addEventListener('input', () => {
     feedback.classList.remove('show');
@@ -323,7 +347,7 @@ padding: 8px;
     const phone = phoneInput.value.trim();
 
     if (!phone || !isValidPhone(phone)) {
-      showFeedback('Bitte eine gueltige Telefonnummer eingeben', 'error');
+      showFeedback('Bitte eine gültige Telefonnummer eingeben', 'error');
       phoneInput.focus();
       return;
     }
