@@ -277,8 +277,8 @@ padding: 8px;
 <div class="consent" id="consent">
   Mit dem Absenden stimmst du unserer
   <a href="https://talk-mate.com/kontaktierung" target="_blank">Kontaktierung</a> zu
-  und best&#228;tigst, unsere
-  <a href="https://talk-mate.com/datenschutz" target="_blank">Datenschutzerkl&#228;rung</a>
+  und bestätigst, unsere
+  <a href="https://talk-mate.com/datenschutz" target="_blank">Datenschutzerklärung</a>
   gelesen zu haben.
 </div>
 ```
@@ -303,7 +303,7 @@ padding: 8px;
   }
 
   function scheduleHide() {
-    hideTimeout = setTimeout(function() {
+    hideTimeout = setTimeout(() => {
       consent.classList.remove('show');
     }, 150);
   }
@@ -313,12 +313,12 @@ padding: 8px;
   consent.addEventListener('mouseenter', showConsent);
   consent.addEventListener('mouseleave', scheduleHide);
 
-  phoneInput.addEventListener('input', function() {
+  phoneInput.addEventListener('input', () => {
     feedback.classList.remove('show');
     feedback.className = 'feedback';
   });
 
-  phoneInput.addEventListener('keydown', function(e) {
+  phoneInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') handleCall();
   });
 
@@ -328,15 +328,15 @@ padding: 8px;
   }
 
   function isValidPhone(num) {
-    var cleaned = num.replace(/[\s\-\(\)]/g, '');
+    const cleaned = num.replace(/[\s\-\(\)]/g, '');
     return /^(\+49|0049|0)[1-9]\d{7,14}$/.test(cleaned);
   }
 
   async function handleCall() {
-    var phone = phoneInput.value.trim();
+    const phone = phoneInput.value.trim();
 
     if (!phone || !isValidPhone(phone)) {
-      showFeedback('Bitte eine g\u00fcltige Telefonnummer eingeben', 'error');
+      showFeedback('Bitte eine gültige Telefonnummer eingeben', 'error');
       phoneInput.focus();
       return;
     }
@@ -347,20 +347,20 @@ padding: 8px;
     phoneInput.disabled = true;
 
     try {
-      var API_URL = 'https://deine-api.talk-mate.com/api/demo-call';
+      const API_URL = 'https://deine-api.talk-mate.com/api/demo-call';
 
-      var res = await fetch(API_URL, {
+      const res = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: phone })
+        body: JSON.stringify({ phone })
       });
 
       if (!res.ok) throw new Error('API Error');
 
       ctaBtn.classList.remove('loading');
-      showFeedback('Anruf wird gestartet - gleich klingelts!', 'success');
+      showFeedback('Anruf wird gestartet — gleich klingelts!', 'success');
 
-      setTimeout(function() {
+      setTimeout(() => {
         ctaBtn.disabled = false;
         phoneInput.disabled = false;
         phoneInput.value = '';
@@ -371,7 +371,7 @@ padding: 8px;
       ctaBtn.classList.remove('loading');
       ctaBtn.disabled = false;
       phoneInput.disabled = false;
-      showFeedback('Verbindung fehlgeschlagen - bitte erneut versuchen', 'error');
+      showFeedback('Verbindung fehlgeschlagen — bitte erneut versuchen', 'error');
     }
   }
 </script>
